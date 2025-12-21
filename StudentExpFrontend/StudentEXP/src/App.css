@@ -1,0 +1,83 @@
+/* #root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+} */
+
+
+.app-container {
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+.auth-container {
+  min-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Center Login / Signup card */
+.auth-container > div {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+/* Push toggle button to bottom */
+.toggle-auth-btn {
+  margin-top: auto;
+  margin-bottom: 30px;
+
+  padding: 10px 22px;
+  background-color: transparent;
+  border: 2px solid #6c63ff;
+  border-radius: 30px;
+  color: #6c63ff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-auth-btn:hover {
+  background-color: #6c63ff;
+  color: #ffffff;
+}
