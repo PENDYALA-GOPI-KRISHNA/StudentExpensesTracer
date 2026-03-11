@@ -1,43 +1,48 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 
 app = Flask(__name__)
 CORS(app)
 
-# ✅ Local MySQL connection
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Gopi@123",   # your mysql password
-    database="studentexptraker",
-    port=3306
+# Supabase PostgreSQL connection
+conn = psycopg2.connect(
+    host="aws-1-ap-southeast-2.pooler.supabase.com",
+    database="postgres",
+    user="postgres.qvlximgbpsmkschlxefk",
+    password="gSGLbWpqS4xUlOhs",
+    port=6543,
+    sslmode="require"
 )
 
-cursor = db.cursor(dictionary=True)
-
+cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+print("Connected Successfully 🚀")
 
 @app.route("/")
 def home():
     return "Flask backend running locally 🚀"
 
 
-# ✅ Register
+# Register
 @app.route("/signup", methods=["POST"])
 def register():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    cursor.execute(
-        "INSERT INTO students (name, email, password) VALUES (%s, %s, %s)",
-        (data["name"], data["email"], data["password"])
-    )
-    db.commit()
+        cursor.execute(
+            "INSERT INTO students (name, email, password) VALUES (%s,%s,%s)",
+            (data["name"], data["email"], data["password"])
+        )
+        conn.commit()
 
-    return {"message": "User registered successfully"}
+        return {"message": "User registered successfully"}
 
-from flask import jsonify  # Make sure this import is present at the top
+    except Exception as e:
+        return {"error": str(e)}, 400
 
-# Fetch all expenses for a given student_id
+
+# Get expenses
 @app.route("/expenses/<int:student_id>", methods=["GET"])
 def get_expenses(student_id):
     try:
@@ -51,14 +56,15 @@ def get_expenses(student_id):
         return jsonify({"error": str(e)}), 500
 
 
-# Add a new expense for a student
+# Add expense
 @app.route("/add-expense", methods=["POST"])
 def add_expense():
     try:
         data = request.get_json()
+
         cursor.execute(
             """
-            INSERT INTO expenses (student_id, expenses_date, amount, category, discription)
+            INSERT INTO expenses (student_id, expenses_date, amount, category, description)
             VALUES (%s, %s, %s, %s, %s)
             """,
             (
@@ -69,13 +75,15 @@ def add_expense():
                 data["description"]
             )
         )
-        db.commit()
+
+        conn.commit()
+
         return jsonify({"message": "Expense saved successfully"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-# ✅ Login (UPDATED TO MATCH YOUR REACT)
+# Login
 @app.route("/login", methods=["POST"])
 def login():
     try:
@@ -89,9 +97,7 @@ def login():
         user = cursor.fetchone()
 
         if user:
-            return {
-                "student_id": user["student_id"]  # ✅ FIXED HERE
-            }
+            return {"student_id": user["student_id"]}
         else:
             return {"message": "Invalid credentials"}, 401
 

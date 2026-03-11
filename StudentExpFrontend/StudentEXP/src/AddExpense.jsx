@@ -41,7 +41,6 @@ function AddExpense({ studentId }) {
       fetchExpenses();
     }
   };
-
   return (
     <div className="expense-container">
       <h2 className="expense-heading">Add Expense</h2>
