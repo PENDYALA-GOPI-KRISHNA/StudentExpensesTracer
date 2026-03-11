@@ -6,22 +6,23 @@ import psycopg2.extras
 app = Flask(__name__)
 CORS(app)
 
-# Supabase PostgreSQL connection
-conn = psycopg2.connect(
-    host="aws-1-ap-southeast-2.pooler.supabase.com",
-    database="postgres",
-    user="postgres.qvlximgbpsmkschlxefk",
-    password="gSGLbWpqS4xUlOhs",
-    port=6543,
-    sslmode="require"
-)
+# Database connection function
+def get_db_connection():
+    conn = psycopg2.connect(
+        host="aws-1-ap-southeast-2.pooler.supabase.com",
+        database="postgres",
+        user="postgres.qvlximgbpsmkschlxefk",
+        password="gSGLbWpqS4xUlOhs",
+        port=6543,
+        sslmode="require"
+    )
+    return conn
 
-cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-print("Connected Successfully 🚀")
 
+# Test route
 @app.route("/")
 def home():
-    return "Flask backend running locally 🚀"
+    return jsonify({"message": "Flask backend running 🚀"})
 
 
 # Register
@@ -30,28 +31,44 @@ def register():
     try:
         data = request.get_json()
 
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
         cursor.execute(
             "INSERT INTO students (name, email, password) VALUES (%s,%s,%s)",
             (data["name"], data["email"], data["password"])
         )
+
         conn.commit()
 
-        return {"message": "User registered successfully"}
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "User registered successfully"})
 
     except Exception as e:
-        return {"error": str(e)}, 400
+        return jsonify({"error": str(e)}), 400
 
 
 # Get expenses
 @app.route("/expenses/<int:student_id>", methods=["GET"])
 def get_expenses(student_id):
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
         cursor.execute(
             "SELECT * FROM expenses WHERE student_id=%s ORDER BY expenses_date DESC",
             (student_id,)
         )
+
         expenses = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
         return jsonify(expenses)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -62,9 +79,13 @@ def add_expense():
     try:
         data = request.get_json()
 
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
         cursor.execute(
             """
-            INSERT INTO expenses (student_id, expenses_date, amount, category, description)
+            INSERT INTO expenses 
+            (student_id, expenses_date, amount, category, description)
             VALUES (%s, %s, %s, %s, %s)
             """,
             (
@@ -78,7 +99,11 @@ def add_expense():
 
         conn.commit()
 
+        cursor.close()
+        conn.close()
+
         return jsonify({"message": "Expense saved successfully"})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -89,6 +114,9 @@ def login():
     try:
         data = request.get_json()
 
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
         cursor.execute(
             "SELECT * FROM students WHERE email=%s AND password=%s",
             (data["email"], data["password"])
@@ -96,13 +124,16 @@ def login():
 
         user = cursor.fetchone()
 
+        cursor.close()
+        conn.close()
+
         if user:
-            return {"student_id": user["student_id"]}
+            return jsonify({"student_id": user["student_id"]})
         else:
-            return {"message": "Invalid credentials"}, 401
+            return jsonify({"message": "Invalid credentials"}), 401
 
     except Exception as e:
-        return {"error": str(e)}, 500
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
