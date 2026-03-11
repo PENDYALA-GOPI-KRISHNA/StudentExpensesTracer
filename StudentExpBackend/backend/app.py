@@ -6,7 +6,7 @@ import psycopg2.extras
 app = Flask(__name__)
 CORS(app)
 
-# Database connection function
+# Database connection functions
 def get_db_connection():
     conn = psycopg2.connect(
         host="aws-1-ap-southeast-2.pooler.supabase.com",
